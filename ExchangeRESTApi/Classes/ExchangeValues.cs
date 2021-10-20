@@ -5,9 +5,7 @@ using ExchangeRESTApi.Interfaces;
 using ExchangeRESTApi.Objects;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
 
 namespace ExchangeRESTApi.Classes
 {
@@ -50,29 +48,6 @@ namespace ExchangeRESTApi.Classes
             {
                 Console.WriteLine("ExchangeValues err");
                 Console.WriteLine(e.Message);
-            }
-        }
-
-
-        private static DateTime SetWhenNothing(DateTime startDate)
-        {
-            Uri uri = new Uri(baseUri.ToString() + String.Format("?startPeriod={0}&endPeriod={1}&format=csvdata", startDate.ToString("yyyy-MM-dd"), AppConfig.EndData.ToString("yyyy-MM-dd")));
-
-            if(DateTime.Compare(startDate, DateTime.Now.Date) > 0)
-            {
-                return SetWhenNothing(startDate.AddDays(-1));
-            }
-
-            ExchangeValues ex = new ExchangeValues();
-            HashSet<AppCourse> list = ex.GetCourseFromCSV(uri);
-
-            if(list.Count == 0)
-            {
-                return SetWhenNothing(startDate.AddDays(-1));
-            }
-            else
-            {
-                return startDate;
             }
         }
 
@@ -179,23 +154,6 @@ namespace ExchangeRESTApi.Classes
             else
             {
                 throw new ArgumentOutOfRangeException("404");
-            }
-            
-        }
-
-        private static DateTime StartDate(DateTime startDate)
-        {
-            if(DateTime.Compare(startDate, AppConfig.StartDate) <= 0)
-            {
-                return startDate;
-            }
-            else if (courses.Where(el => el.Date == startDate).Count() == 0)
-            {
-                return StartDate(startDate.AddDays(-1));
-            }
-            else
-            {
-                return startDate;
             }
         }
     }

@@ -64,89 +64,7 @@ namespace ExchangeRESTApi.Classes
                 Console.WriteLine(e.Message);
             }
         }
-
-        private static DateTime SetWhenNothing(DateTime startDate)
-        {
-            Uri uri = new Uri(baseUri.ToString() + String.Format("?startPeriod={0}&endPeriod={1}&format=csvdata", startDate.ToString("yyyy-MM-dd"), AppConfig.EndData.ToString("yyyy-MM-dd")));
-
-            if (DateTime.Compare(startDate, DateTime.Now.Date) > 0)
-            {
-                return SetWhenNothing(startDate.AddDays(-1));
-            }
-
-            ExchangeValues ex = new ExchangeValues();
-            HashSet<AppCourse> list = ex.GetCourseFromCSV(uri);
-
-            if (list.Count == 0)
-            {
-                return SetWhenNothing(startDate.AddDays(-1));
-            }
-            else
-            {
-                return startDate;
-            }
-        }
-
-
-        public HashSet<AppCourse> Get(Dictionary<string, string> currencyCodes, DateTime startDate, DateTime endDate, string apiKey)
-        {
-            if (DateTime.Compare(startDate, endDate) <= 0 && String.Compare(apiKey, AppConfig.SecretKey) == 0)
-            {
-                List<AppCourse> res = new List<AppCourse>();
-
-                if (DateTime.Compare(startDate, DateTime.Now) <= 0)
-                {
-                    if (DateTime.Compare(startDate, AppConfig.StartDate) < 0 && DateTime.Compare(endDate, AppConfig.StartDate) < 0)
-                    {
-                        throw new ArgumentOutOfRangeException("404");
-                    }
-                    else
-                    {
-                        try
-                        {
-                            CoursesController coursesController = new CoursesController(new CourseContext());
-
-                            DateTime currentDate = DateTime.Now.Date;
-
-                            if (DateTime.Compare(relaseDate, currentDate) != 0)
-                            {
-                                Uri uri = new Uri(baseUri.ToString() + String.Format("?startPeriod={0}&endPeriod={1}&format=csvdata", relaseDate.AddDays(1).ToString("yyyy-MM-dd"), currentDate.ToString("yyyy-MM-dd")));
-
-                                if (DateTime.Compare(currentDate, relaseDate) > 0 && GetCourseFromCSV(uri).Count != 0)
-                                {
-                                   Set(relaseDate.AddDays(1), currentDate);
-                                }
-                            }
-
-                            startDate = StartDate(startDate);
-
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Get err");
-                            Console.WriteLine(e.Message);
-                        }
-                    }
-
-                    
-
-                    res.AddRange(Find(currencyCodes, startDate, endDate));
-                    
-
-                    return res.ToHashSet();
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("404");
-                }
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException("404");
-            }
-
-        }
-
+        
         public void Set(DateTime startDate, DateTime endDate)
         {
             try
@@ -172,8 +90,6 @@ namespace ExchangeRESTApi.Classes
                                 itemWithError.Id, itemWithError.Error);
                         }
                     }
-
-
 
                     CoursesController coursesController = new CoursesController(new CourseContext());
                     coursesController.SetCoursesInDb(list);
@@ -202,19 +118,57 @@ namespace ExchangeRESTApi.Classes
             }
         }
 
-        private static DateTime StartDate(DateTime startDate)
+        public HashSet<AppCourse> Get(Dictionary<string, string> currencyCodes, DateTime startDate, DateTime endDate, string apiKey)
         {
-            if (DateTime.Compare(startDate, AppConfig.StartDate) <= 0)
+            if (DateTime.Compare(startDate, endDate) <= 0 && String.Compare(apiKey, AppConfig.SecretKey) == 0)
             {
-                return startDate;
-            }
-            else if (courses.Where(el => el.Date == startDate).Count() == 0)
-            {
-                return StartDate(startDate.AddDays(-1));
+                List<AppCourse> res = new List<AppCourse>();
+
+                if (DateTime.Compare(startDate, DateTime.Now) <= 0)
+                {
+                    if (DateTime.Compare(startDate, AppConfig.StartDate) < 0 && DateTime.Compare(endDate, AppConfig.StartDate) < 0)
+                    {
+                        throw new ArgumentOutOfRangeException("404");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            CoursesController coursesController = new CoursesController(new CourseContext());
+
+                            DateTime currentDate = DateTime.Now.Date;
+
+                            if (DateTime.Compare(relaseDate, currentDate) != 0)
+                            {
+                                Uri uri = new Uri(baseUri.ToString() + String.Format("?startPeriod={0}&endPeriod={1}&format=csvdata", relaseDate.AddDays(1).ToString("yyyy-MM-dd"), currentDate.ToString("yyyy-MM-dd")));
+
+                                if (DateTime.Compare(currentDate, relaseDate) > 0 && GetCourseFromCSV(uri).Count != 0)
+                                {
+                                    Set(relaseDate.AddDays(1), currentDate);
+                                }
+                            }
+
+                            startDate = StartDate(startDate);
+
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Get err");
+                            Console.WriteLine(e.Message);
+                        }
+                    }
+                    res.AddRange(Find(currencyCodes, startDate, endDate));
+
+                    return res.ToHashSet();
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("404");
+                }
             }
             else
             {
-                return startDate;
+                throw new ArgumentOutOfRangeException("404");
             }
         }
 
@@ -244,7 +198,6 @@ namespace ExchangeRESTApi.Classes
                             .Field(f => f.To)
                             .Query(codesPair.Value))
                     ));
-                    
 
                 if (!response.IsValid)
                 {
