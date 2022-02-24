@@ -1,4 +1,4 @@
-# ExchangeRESTApi
+# Api (wymiana walut)
 
 1. Crete database:
 	-run in PM: add-migration start
